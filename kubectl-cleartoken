@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+ctx=$(kubectl config current-context)
+usr=$(kubectl config view -o jsonpath="{.contexts[?(@.name == \"${ctx}\")].context.user}")
+
+read -r -p "Clear access-token for: ${usr}? [y/N] " response
+
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
+then
+    kubectl config set-credentials "${usr}" \
+      --auth-provider-arg=access-token="" \
+      --auth-provider-arg=refresh-token="" \
+      --auth-provider-arg=expires-in="" \
+      --auth-provider-arg=expires-on=""
+fi
+

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+ctx=$(kubectl config current-context)
+usr=$(kubectl config view -o jsonpath="{.contexts[?(@.name == \"${ctx}\")].context.user}")
+kubectl config view -o json | jq -r ".users[] | select(.name==\"${usr}\") | .user.\"auth-provider\".config.\"access-token\"" | pbcopy
+echo "Copied token to clipboard for ${usr}/${ctx}"

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+RES="NAME\tSCHEDULE\tSUSPEND\tACTIVE\tLAST SCHEDULE\tAGE\tFRIENDLY SCHEDULE\n"
+while IFS= read -r line
+do
+  NAME=$(echo "$line" | cut -sd "#" -f 1)
+  SCHEDULE=$(echo "$line" | cut -sd "#" -f 2)
+  SUSPEND=$(echo "$line" | cut -sd "#" -f 3)
+  ACTIVE=$(echo "$line" | cut -sd "#" -f 4)
+  LAST_SCHEDULE=$(echo "$line" | cut -sd "#" -f 5)
+  AGE=$(echo "$line" | cut -sd "#" -f 6)
+  CRON_EXPRESSION=$(echo "$SCHEDULE" | sed 's/ /+/g')
+  FRIENDLY_SCHEDULE=$(curl -s "https://cronexpressiondescriptor.azurewebsites.net/api/descriptor/?expression=$CRON_EXPRESSION&locale=en-US" | jq -r '.description')
+  RES="$RES\t$NAME\t$SCHEDULE\t$SUSPEND\t$ACTIVE\t$LAST_SCHEDULE\t$AGE\t$FRIENDLY_SCHEDULE\n"
+done < <(kubectl get cronjobs --no-headers | sort -k 3 -k 2 | sed 's/ \{2,\}/#/g')
+column -t -s $'\t' < <(printf "$RES")
